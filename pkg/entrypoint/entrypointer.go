@@ -38,7 +38,6 @@ import (
 	"github.com/tektoncd/pipeline/pkg/entrypoint/pipeline"
 	"github.com/tektoncd/pipeline/pkg/internal/resultref"
 	"github.com/tektoncd/pipeline/pkg/result"
-	"github.com/tektoncd/pipeline/pkg/spire"
 	"github.com/tektoncd/pipeline/pkg/termination"
 
 	"github.com/google/cel-go/cel"
@@ -165,7 +164,7 @@ type Entrypointer struct {
 	// StepMetadataDir is the directory for a step where the step related metadata can be stored
 	StepMetadataDir string
 	// SpireWorkloadAPI connects to spire and does obtains SVID based on taskrun
-	SpireWorkloadAPI spire.EntrypointerAPIClient
+	SpireWorkloadAPI EntrypointerAPIClient
 	// ResultsDirectory is the directory to find results, defaults to pipeline.DefaultResultPath
 	ResultsDirectory string
 	// ResultExtractionMethod is the method using which the controller extracts the results from the task pod.
@@ -460,13 +459,11 @@ func (e Entrypointer) readResultsFromDisk(ctx context.Context, resultDir string,
 		})
 	}
 
-	if e.SpireWorkloadAPI != nil {
-		signed, err := e.SpireWorkloadAPI.Sign(ctx, output)
-		if err != nil {
-			return err
-		}
-		output = append(output, signed...)
+	signed, err := signResults(ctx, e.SpireWorkloadAPI, output)
+	if err != nil {
+		return err
 	}
+	output = append(output, signed...)
 
 	// push output to termination path
 	if e.ResultExtractionMethod == ResultExtractionMethodTerminationMessage && len(output) != 0 {
