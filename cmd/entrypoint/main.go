@@ -28,13 +28,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/containerd/containerd/platforms"
 	"github.com/tektoncd/pipeline/cmd/entrypoint/subcommands"
 	v1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1/types"
 	"github.com/tektoncd/pipeline/pkg/credentials/dockercreds"
 	"github.com/tektoncd/pipeline/pkg/credentials/gitcreds"
 	credwriter "github.com/tektoncd/pipeline/pkg/credentials/writer"
 	"github.com/tektoncd/pipeline/pkg/entrypoint"
+	"github.com/tektoncd/pipeline/pkg/entrypoint/platforms"
 	"github.com/tektoncd/pipeline/pkg/termination"
 )
 
@@ -110,7 +110,7 @@ func main() {
 		// It doesn't include osversion, which is necessary to
 		// disambiguate two images both for e.g., Windows, that only
 		// differ by osversion.
-		plat := platforms.DefaultString()
+		plat := platforms.NewPlatform().Format()
 		var err error
 		cmd, err = selectCommandForPlatform(cmds, plat)
 		if err != nil {
